@@ -11,7 +11,7 @@
     <div class="text-center p-8">
         <h1 class="text-4xl font-black mb-10 tracking-tighter italic">Is Quit Yet?</h1>
         <div id="avatar" class="text-9xl mb-10 transition-all duration-500">😐</div>
-        <div id="status" class="text-zinc-500 mb-10 tracking-widest uppercase text-sm font-bold">状态：同步中...</div>
+        <div id="status" class="text-zinc-500 mb-10 tracking-widest uppercase text-sm font-bold">同步中...</div>
         
         <div class="space-y-4">
             <button id="btn-checkin" onclick="checkIn()" class="w-full bg-white text-black px-10 py-5 rounded-2xl font-black text-xl active:scale-95 transition-all opacity-50 cursor-not-allowed" disabled>
@@ -25,7 +25,7 @@
     </div>
 
     <script>
-        // 2. 配置你的 Supabase 钥匙
+        // ⚠️ 这里填入你在 Supabase Project Settings -> API 页面复制的钥匙
         const SUPABASE_URL = 'https://xptxthgckrnkptrukydd.supabase.co'; 
         const SUPABASE_KEY = 'keysb_publishable_yct5ZGnpmDhEPmSyg7zhaQ_yavnWjh8';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -38,7 +38,6 @@
         const co = document.getElementById('count');
         const btn = document.getElementById('btn-checkin');
 
-        // 更新界面的函数
         function updateUI() {
             co.innerText = days;
             if (quit) {
@@ -47,50 +46,40 @@
                 st.className = "text-green-500 mb-10 tracking-widest uppercase text-sm font-bold";
                 return;
             }
-            if (days >= 30) { av.innerText = "🗿"; st.innerText = "状态：工位化石"; }
-            else if (days >= 7) { av.innerText = "🤡"; st.innerText = "状态：资深牛马"; }
-            else if (days >= 1) { av.innerText = "🧟"; st.innerText = "状态：行尸走肉"; }
-            else { av.innerText = "😐"; st.innerText = "状态：苟活中"; }
+            if (days >= 30) av.innerText = "🗿";
+            else if (days >= 7) av.innerText = "🤡";
+            else if (days >= 1) av.innerText = "🧟";
+            st.innerText = quit ? "已解脱" : "状态：苟活中";
         }
 
-        // 3. 初始加载：从云端获取数据
+        // 初始加载
         async function loadData() {
-            try {
-                // 尝试获取 id 为 1 的数据（你的专属打卡位）
-                let { data, error } = await _supabase.from('status_logs').select().eq('id', 1).single();
-                
-                if (data) {
-                    days = data.days_count;
-                    quit = data.is_quit;
-                }
-                updateUI();
-                // 数据加载完，才允许点按钮
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } catch (e) {
-                console.log("加载失败，请检查表名是否为 status_logs");
+            const { data, error } = await _supabase.from('status_logs').select().eq('id', 1).single();
+            if (data) {
+                days = data.days_count;
+                quit = data.is_quit;
+            } else {
+                // 如果没数据，先初始化一行
+                await _supabase.from('status_logs').insert({ id: 1, days_count: 0, is_quit: false });
             }
+            updateUI();
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
 
-        // 4. 打卡：同步到云端
+        // 打卡逻辑
         async function checkIn() {
             if(quit) return;
             days++;
             updateUI();
-            
-            // 将新数据推送到 Supabase
-            await _supabase.from('status_logs').upsert({ 
-                id: 1, 
-                days_count: days, 
-                is_quit: quit 
-            });
+            await _supabase.from('status_logs').update({ days_count: days }).eq('id', 1);
         }
 
         async function freedom() {
             if(confirm('真的决定解脱了吗？')) {
                 quit = true;
                 updateUI();
-                await _supabase.from('status_logs').upsert({ id: 1, days_count: days, is_quit: true });
+                await _supabase.from('status_logs').update({ is_quit: true }).eq('id', 1);
             }
         }
 
