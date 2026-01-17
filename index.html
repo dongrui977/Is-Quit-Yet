@@ -6,16 +6,25 @@
     <title>辞了吗？</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-pop { animation: fade-in-up 0.4s ease-out; }
+    </style>
 </head>
-<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen">
-    <div class="text-center p-8">
+<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen overflow-hidden">
+    <div class="text-center p-8 max-w-sm w-full">
         <h1 class="text-4xl font-black mb-10 tracking-tighter italic">辞了吗？</h1>
         
-        <div id="avatar" class="text-9xl mb-10 transition-all duration-500">😐</div>
+        <div id="avatar" class="text-9xl mb-10 transition-all duration-500 hover:scale-110">😐</div>
         
-        <div id="status" class="text-zinc-500 mb-10 tracking-widest uppercase text-sm font-bold">
+        <div id="status" class="text-zinc-500 mb-6 tracking-widest uppercase text-sm font-bold">
             正在确认生命体征...
         </div>
+
+        <div id="quote" class="h-16 text-zinc-400 text-sm italic mb-10 px-4"></div>
         
         <div class="space-y-4">
             <button id="btn-checkin" onclick="checkIn()" class="w-full bg-white text-black px-10 py-5 rounded-2xl font-black text-xl active:scale-95 transition-all opacity-50 cursor-not-allowed" disabled>
@@ -29,7 +38,7 @@
     </div>
 
     <script>
-        // ⚠️ 记得确保这里的钥匙还是你之前填的那两串
+        // ⚠️ 记得填入你自己的 Supabase 钥匙
         const SUPABASE_URL = '你的Project URL'; 
         const SUPABASE_KEY = '你的anon Key';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -37,17 +46,29 @@
         let days = 0;
         let quit = false;
 
+        const quotes = [
+            "只要你肯努力，你的老板明年就能换法拉利。",
+            "公司没了你照样转，但没了你老板真的会开心。",
+            "工作不养闲人，但养懒人和卷王。",
+            "世上无难事，只要肯放弃。",
+            "今天也是被迫营业的一天。",
+            "你的工资，其实是公司给你的精神损失费。",
+            "如果你的工作让你不快乐，那说明你还没麻木。"
+        ];
+
         const av = document.getElementById('avatar');
         const st = document.getElementById('status');
         const co = document.getElementById('count');
         const btn = document.getElementById('btn-checkin');
+        const quoteEl = document.getElementById('quote');
 
         function updateUI() {
             co.innerText = days;
             if (quit) {
                 av.innerText = "🏝️";
                 st.innerText = "状态：已解脱 (自由万岁)";
-                st.className = "text-green-500 mb-10 tracking-widest uppercase text-sm font-bold";
+                st.className = "text-green-500 mb-6 tracking-widest uppercase text-sm font-bold";
+                quoteEl.innerText = "从此山高路远，再无早会周报。";
                 return;
             }
             if (days >= 30) { av.innerText = "🗿"; st.innerText = "状态：工位化石"; }
@@ -70,6 +91,14 @@
         async function checkIn() {
             if(quit) return;
             days++;
+            
+            // 显示随机鸡汤
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            quoteEl.innerText = randomQuote;
+            quoteEl.classList.remove('animate-pop');
+            void quoteEl.offsetWidth; // 触发动画重绘
+            quoteEl.classList.add('animate-pop');
+
             updateUI();
             await _supabase.from('status_logs').update({ days_count: days }).eq('id', 1);
         }
