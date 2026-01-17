@@ -1,0 +1,88 @@
+import 'package: flutter/material.dart';
+
+void main() => runApp(QuitYetApp());
+
+class QuitYetApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData.dark(), // 必须是深色模式，符合打工人的心情
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  bool isQuit = false; // 是否真的离职了
+  int workDays = 0;    // 连续打卡（苟活）天数
+
+  // 模拟打工人头像序列
+  String get workerAvatar {
+    if (isQuit) return "🌈"; // 离职后变彩虹
+    if (workDays > 10) return "🤡"; // 撑太久变小丑
+    if (workDays > 5) return "🧟"; // 连续加班变僵尸
+    return "😑"; // 日常麻木
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("今日辞了吗？", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            SizedBox(height: 40),
+            // 灵魂头像显示
+            AnimatedContainer(
+              duration: Duration(milliseconds: 500),
+              padding: EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isQuit ? Colors.green : Colors.grey[800],
+                boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10)],
+              ),
+              child: Text(workerAvatar, style: TextStyle(fontSize: 80)),
+            ),
+            SizedBox(height: 60),
+            // 核心打卡按钮
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  workDays++;
+                  // 模拟一个随机的“崩溃”效果
+                  if (workDays % 7 == 0) print("怨气值爆表！");
+                });
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              child: Text("没呢，还在苟着 (Day $workDays)"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() => isQuit = true);
+                _showVictoryDialog();
+              },
+              child: Text("点此原地解脱", style: TextStyle(color: Colors.grey)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showVictoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("恭喜！"),
+        content: Text("你已成功从赛博工厂赎身，去寻找诗和远方吧。"),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text("起飞"))],
+      ),
+    );
+  }
+}
