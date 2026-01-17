@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>辞了吗？- QuitYet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white flex flex-col items-center justify-center min-h-screen">
+    <div class="text-center p-8">
+        <h1 class="text-4xl font-black mb-10 tracking-tighter italic">Is Quit Yet?</h1>
+        
+        <div id="avatar" class="text-9xl mb-10 transition-all duration-500">😐</div>
+        
+        <div id="status" class="text-zinc-500 mb-10 tracking-widest uppercase text-sm font-bold">
+            状态：苟活中
+        </div>
+        
+        <div class="space-y-4">
+            <button onclick="checkIn()" class="w-full bg-white text-black px-10 py-5 rounded-2xl font-black text-xl active:scale-95 transition-all">
+                还没，再撑一天 (<span id="count">0</span>)
+            </button>
+            <br>
+            <button onclick="freedom()" class="text-zinc-700 text-xs underline uppercase tracking-widest mt-8 hover:text-red-500 transition-colors">
+                [ 我要解脱 / 离职 ]
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 核心逻辑
+        let days = parseInt(localStorage.getItem('q-days') || 0);
+        let quit = localStorage.getItem('q-quit') === 'true';
+
+        const av = document.getElementById('avatar');
+        const st = document.getElementById('status');
+        const co = document.getElementById('count');
+
+        function update() {
+            co.innerText = days;
+            if (quit) {
+                av.innerText = "🏝️";
+                st.innerText = "状态：已解脱 (自由万岁)";
+                st.className = "text-green-500 mb-10 tracking-widest uppercase text-sm font-bold";
+                return;
+            }
+            // 头像进化逻辑
+            if (days >= 30) { av.innerText = "🗿"; st.innerText = "状态：工位化石"; }
+            else if (days >= 7) { av.innerText = "🤡"; st.innerText = "状态：资深牛马"; }
+            else if (days >= 1) { av.innerText = "🧟"; st.innerText = "状态：行尸走肉"; }
+        }
+
+        function checkIn() {
+            if(quit) return;
+            days++;
+            localStorage.setItem('q-days', days);
+            update();
+        }
+
+        function freedom() {
+            if(confirm('真的决定提交辞职报告了吗？确认后将开启解脱模式！')) {
+                quit = true;
+                localStorage.setItem('q-quit', 'true');
+                update();
+            }
+        }
+
+        update();
+    </script>
+</body>
+</html>
